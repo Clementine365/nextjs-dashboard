@@ -3,13 +3,13 @@ export const dynamic = 'force-dynamic';
 
 import Form from '@/app/ui/invoices/create-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
-import { fetchCustomers } from '@/app/lib/data';
-import { CustomerField } from '@/app/lib/definitions';
+import { fetchCustomers, type CustomerField } from '@/app/lib/data';
 
 export default async function Page() {
   let customers: CustomerField[] = [];
 
   try {
+    // Fetch customers from Vercel Postgres
     customers = await fetchCustomers();
   } catch (error) {
     console.error('Failed to fetch customers:', error);
