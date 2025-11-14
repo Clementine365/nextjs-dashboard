@@ -4,17 +4,16 @@ export const dynamic = 'force-dynamic';
 import Form from '@/app/ui/invoices/create-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 import { fetchCustomers } from '@/app/lib/data';
-import type { CustomerField } from '@/app/lib/definitions'; // Import type directly
+import type { CustomerField } from '@/app/lib/definitions'; // Ensure type is exported and imported correctly
 
-export default async function Page() {
-  // Explicitly type the array to avoid any[] issues
+export default async function Page(): Promise<JSX.Element> {
+  // ✅ Explicitly typed array to avoid 'any[]' errors
   let customers: CustomerField[] = [];
 
   try {
     customers = await fetchCustomers();
   } catch (error) {
     console.error('Failed to fetch customers:', error);
-    // fallback: empty array to prevent build errors
     customers = [];
   }
 
