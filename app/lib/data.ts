@@ -1,4 +1,6 @@
 import postgres from 'postgres';
+export type { CustomerField };
+
 import {
   CustomerField,
   CustomersTableType,

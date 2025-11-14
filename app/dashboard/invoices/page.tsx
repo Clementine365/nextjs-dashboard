@@ -1,18 +1,20 @@
-import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
-import Form from '@/app/ui/invoices/create-form';
-import type { CustomerField } from '@/app/lib/definitions';
-import { fetchCustomers } from '@/app/lib/data';
-
+// Force this page to render dynamically at runtime
 export const dynamic = 'force-dynamic';
 
+import Form from '@/app/ui/invoices/create-form';
+import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
+import { fetchCustomers } from '@/app/lib/data';
+import type { CustomerField } from '@/app/lib/definitions'; // Import type directly
+
 export default async function Page() {
-  // ✅ Explicit type at declaration
+  // Explicitly type the array to avoid any[] issues
   let customers: CustomerField[] = [];
 
   try {
     customers = await fetchCustomers();
   } catch (error) {
     console.error('Failed to fetch customers:', error);
+    // fallback: empty array to prevent build errors
     customers = [];
   }
 
