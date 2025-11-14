@@ -1,16 +1,21 @@
+// Force this page to render dynamically at runtime
+export const dynamic = 'force-dynamic';
+
 import Form from '@/app/ui/invoices/create-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
+import type { CustomerField } from '@/app/lib/definitions'; // make sure it's type-only import
 import { fetchCustomers } from '@/app/lib/data';
-import type { CustomerField } from '@/app/lib/definitions';
 
 export default async function Page() {
-  // <-- fix is here
-  let customers: CustomerField[] = []; // or use: let customers = [] as CustomerField[];
+  // Explicit type annotation on the empty array
+  let customers: CustomerField[] = [];
 
   try {
+    // Fetch customers from the database
     customers = await fetchCustomers();
   } catch (error) {
     console.error('Failed to fetch customers:', error);
+    // fallback to empty array
     customers = [];
   }
 
