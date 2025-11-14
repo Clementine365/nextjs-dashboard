@@ -1,23 +1,25 @@
+// Force this page to render dynamically at runtime
+export const dynamic = 'force-dynamic';
+
 import Form from '@/app/ui/invoices/create-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
-//import { fetchCustomers, } from '@/app/lib/data';
-import { fetchCustomers, type CustomerField } from '@/app/lib/data'; 
-//export default async function Page() {
-   // Explicitly typed to avoid 'any[]' errors
+import { fetchCustomers, type CustomerField } from '@/app/lib/data';
+
+export default async function CreateInvoicePage() {
+  // Explicitly typed to avoid 'any[]' errors
   let customers: CustomerField[] = [];
-  
 
   try {
-    // Attempt to fetch customers from the database
+    // Fetch customers from Vercel Postgres
     customers = await fetchCustomers();
   } catch (error) {
     console.error('Failed to fetch customers:', error);
-    // fallback: empty array to prevent build errors
+    // fallback: empty array
     customers = [];
   }
 
   return (
-    <main className="px-4 md:px-8">
+    <main className="min-h-screen bg-gray-50 p-4 md:p-8">
       <Breadcrumbs
         breadcrumbs={[
           { label: 'Invoices', href: '/dashboard/invoices' },
@@ -28,9 +30,9 @@ import { fetchCustomers, type CustomerField } from '@/app/lib/data';
       {customers.length > 0 ? (
         <Form customers={customers} />
       ) : (
-        <p className="text-red-500 mt-4">
+        <div className="mt-6 rounded-md bg-red-50 p-4 text-red-700">
           Unable to load customers. Please try again later.
-        </p>
+        </div>
       )}
     </main>
   );
