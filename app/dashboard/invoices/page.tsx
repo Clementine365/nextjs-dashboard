@@ -1,11 +1,11 @@
 import Form from '@/app/ui/invoices/create-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
-import { fetchCustomers } from '@/app/lib/data';
-
-export default async function Page() {
+//import { fetchCustomers, } from '@/app/lib/data';
+import { fetchCustomers, type CustomerField } from '@/app/lib/data'; 
+//export default async function Page() {
    // Explicitly typed to avoid 'any[]' errors
   let customers: CustomerField[] = [];
-  //let customers = [];
+  
 
   try {
     // Attempt to fetch customers from the database
