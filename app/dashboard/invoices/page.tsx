@@ -1,21 +1,21 @@
 // Force this page to render dynamically at runtime
 export const dynamic = 'force-dynamic';
 
-import Form from '@/app/ui/invoices/create-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
-import type { CustomerField } from '@/app/lib/definitions'; // type-only import
+import Form from '@/app/ui/invoices/create-form';
+import type { CustomerField } from '@/app/lib/definitions';
 import { fetchCustomers } from '@/app/lib/data';
 
 export default async function Page() {
-  // ✅ Explicit type annotation on the empty array
+  // ✅ Explicitly type the customers array to avoid 'any[]' issues
   let customers: CustomerField[] = [];
 
   try {
-    // Fetch customers from Vercel Postgres
     customers = await fetchCustomers();
   } catch (error) {
     console.error('Failed to fetch customers:', error);
-    customers = []; // fallback to empty array
+    // fallback to empty array to prevent build failure
+    customers = [];
   }
 
   return (
@@ -30,9 +30,9 @@ export default async function Page() {
       {customers.length > 0 ? (
         <Form customers={customers} />
       ) : (
-        <p className="text-red-500 mt-4">
+        <div className="mt-6 rounded-md bg-red-50 p-4 text-red-700">
           Unable to load customers. Please try again later.
-        </p>
+        </div>
       )}
     </main>
   );
