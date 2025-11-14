@@ -9,18 +9,19 @@ import {
 } from './definitions';
 import { formatCurrency } from './utils';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+/* ---------------------- POSTGRES CONNECTION ---------------------- */
+const sql = postgres(process.env.POSTGRES_URL!, {
+  ssl: { rejectUnauthorized: false }, // Required for Vercel Postgres
+});
 
 /* ---------------------- REVENUE ---------------------- */
 export async function fetchRevenue(): Promise<Revenue[]> {
   try {
     console.log('Fetching revenue data...');
-    await new Promise((resolve) => setTimeout(resolve, 3000)); // demo delay
-
+    // Remove delay in production
     const data = await sql<Revenue[]>`
       SELECT * FROM revenue
     `;
-    console.log('Revenue fetch completed.');
     return data;
   } catch (error) {
     console.error('Database Error (fetchRevenue):', error);
@@ -144,7 +145,7 @@ export async function fetchInvoiceById(id: string): Promise<InvoiceForm | null> 
 
     return {
       ...data[0],
-      amount: data[0].amount / 100, // Convert from cents to dollars
+      amount: data[0].amount / 100, // Convert cents to dollars
     };
   } catch (error) {
     console.error('Database Error (fetchInvoiceById):', error);
