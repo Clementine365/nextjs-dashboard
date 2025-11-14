@@ -3,7 +3,9 @@ import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 import { fetchCustomers } from '@/app/lib/data';
 
 export default async function Page() {
-  let customers = [];
+   // Explicitly typed to avoid 'any[]' errors
+  let customers: CustomerField[] = [];
+  //let customers = [];
 
   try {
     // Attempt to fetch customers from the database
