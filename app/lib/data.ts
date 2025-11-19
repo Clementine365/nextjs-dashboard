@@ -85,6 +85,7 @@ export async function fetchFilteredCustomers(query: string): Promise<CustomersTa
       ...c,
       total_pending: Number(c.total_pending),
       total_paid: Number(c.total_paid),
+      total_invoices: Number(c.total_invoices),
     }));
   } catch (error) {
     console.error('Database Error (fetchFilteredCustomers):', error);
@@ -98,7 +99,7 @@ const ITEMS_PER_PAGE = 6;
 export async function fetchFilteredInvoices(query: string, currentPage: number): Promise<InvoicesTable[]> {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
-    return await sql<InvoicesTable[]>`
+    const data = await sql<any[]>`
       SELECT
         invoices.id,
         invoices.customer_id,
@@ -119,6 +120,16 @@ export async function fetchFilteredInvoices(query: string, currentPage: number):
       ORDER BY invoices.date DESC
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
+    return data.map(invoice => ({
+      id: invoice.id,
+      customer_id: invoice.customer_id,
+      name: invoice.name,
+      email: invoice.email,
+      image_url: invoice.image_url ?? null,
+      amount: Number(invoice.amount),
+      date: invoice.date.toString(),
+      status: invoice.status as 'pending' | 'paid',
+    }));
   } catch (error) {
     console.error('Database Error (fetchFilteredInvoices):', error);
     throw new Error('Failed to fetch filtered invoices.');
@@ -165,7 +176,7 @@ export async function fetchInvoiceById(id: string): Promise<InvoiceForm | null> 
 
 export async function fetchLatestInvoices(): Promise<InvoicesTable[]> {
   try {
-    const data = await sql<InvoicesTable[]>`
+    const data = await sql<any[]>`
       SELECT
         invoices.id,
         invoices.customer_id,
@@ -181,8 +192,14 @@ export async function fetchLatestInvoices(): Promise<InvoicesTable[]> {
       LIMIT 5
     `;
     return data.map(invoice => ({
-      ...invoice,
+      id: invoice.id,
+      customer_id: invoice.customer_id,
+      name: invoice.name,
+      email: invoice.email,
       image_url: invoice.image_url ?? null,
+      amount: Number(invoice.amount),
+      date: invoice.date.toString(),
+      status: invoice.status as 'pending' | 'paid',
     }));
   } catch (error) {
     console.error('Database Error (fetchLatestInvoices):', error);
