@@ -1,63 +1,19 @@
 import postgres from 'postgres';
-import {
-  CustomerField,
-  CustomersTableType,
-  InvoiceForm,
-  InvoicesTable,
-  LatestInvoiceRaw,
-  Revenue,
-} from './definitions';
+import { CustomerField, CustomersTableType, InvoiceForm, InvoicesTable, LatestInvoiceRaw, Revenue } from './definitions';
 
 /* ---------------------- POSTGRES CONNECTION ---------------------- */
 const sql = postgres(process.env.POSTGRES_URL!, {
-  ssl: { rejectUnauthorized: false }, // Required for Vercel Postgres
+  ssl: { rejectUnauthorized: false },
 });
 
 /* ---------------------- REVENUE ---------------------- */
 export async function fetchRevenue(): Promise<Revenue[]> {
   try {
-    const data = await sql<Revenue[]>`
-      SELECT * FROM revenue
-    `;
+    const data = await sql<Revenue[]>`SELECT * FROM revenue`;
     return data;
   } catch (error) {
     console.error('Database Error (fetchRevenue):', error);
     throw new Error('Failed to fetch revenue data.');
-  }
-}
-
-/* ---------------------- LATEST INVOICES ---------------------- */
-export async function fetchLatestInvoices(): Promise<InvoicesTable[]> {
-  try {
-    const data = await sql<LatestInvoiceRaw[]>`
-      SELECT
-        invoices.id,
-        invoices.customer_id,
-        invoices.amount,
-        invoices.date,
-        invoices.status,
-        customers.name,
-        customers.email,
-        customers.image_url
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
-      ORDER BY invoices.date DESC
-      LIMIT 5
-    `;
-
-    return data.map((invoice) => ({
-      id: invoice.id,
-      customer_id: invoice.customer_id,
-      amount: invoice.amount,
-      date: invoice.date,
-      status: invoice.status,
-      name: invoice.name,
-      email: invoice.email,
-      image_url: invoice.image_url ?? null,
-    }));
-  } catch (error) {
-    console.error('Database Error (fetchLatestInvoices):', error);
-    throw new Error('Failed to fetch the latest invoices.');
   }
 }
 
@@ -87,13 +43,39 @@ export async function fetchCardData() {
   }
 }
 
+/* ---------------------- LATEST INVOICES ---------------------- */
+export async function fetchLatestInvoices(): Promise<InvoicesTable[]> {
+  try {
+    const data = await sql<LatestInvoiceRaw[]>`
+      SELECT
+        invoices.id,
+        invoices.customer_id,
+        invoices.amount,
+        invoices.date,
+        invoices.status,
+        customers.name,
+        customers.email,
+        customers.image_url
+      FROM invoices
+      JOIN customers ON invoices.customer_id = customers.id
+      ORDER BY invoices.date DESC
+      LIMIT 5
+    `;
+
+    return data.map((invoice) => ({
+      ...invoice,
+      image_url: invoice.image_url ?? null,
+    }));
+  } catch (error) {
+    console.error('Database Error (fetchLatestInvoices):', error);
+    throw new Error('Failed to fetch latest invoices.');
+  }
+}
+
 /* ---------------------- FILTERED INVOICES ---------------------- */
 const ITEMS_PER_PAGE = 6;
 
-export async function fetchFilteredInvoices(
-  query: string,
-  currentPage: number
-): Promise<InvoicesTable[]> {
+export async function fetchFilteredInvoices(query: string, currentPage: number): Promise<InvoicesTable[]> {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
@@ -120,13 +102,7 @@ export async function fetchFilteredInvoices(
     `;
 
     return data.map((invoice) => ({
-      id: invoice.id,
-      customer_id: invoice.customer_id,
-      amount: invoice.amount,
-      date: invoice.date,
-      status: invoice.status,
-      name: invoice.name,
-      email: invoice.email,
+      ...invoice,
       image_url: invoice.image_url ?? null,
     }));
   } catch (error) {
@@ -158,21 +134,14 @@ export async function fetchInvoicesPages(query: string): Promise<number> {
 export async function fetchInvoiceById(id: string): Promise<InvoiceForm | null> {
   try {
     const data = await sql<InvoiceForm[]>`
-      SELECT
-        id,
-        customer_id,
-        amount,
-        status
+      SELECT id, customer_id, amount, status
       FROM invoices
       WHERE id = ${id}
     `;
 
     if (!data[0]) return null;
 
-    return {
-      ...data[0],
-      amount: data[0].amount / 100,
-    };
+    return { ...data[0], amount: data[0].amount / 100 };
   } catch (error) {
     console.error('Database Error (fetchInvoiceById):', error);
     throw new Error(`Failed to fetch invoice with id ${id}`);
@@ -215,7 +184,8 @@ export async function fetchFilteredCustomers(query: string): Promise<CustomersTa
 
     return data.map((customer) => ({
       ...customer,
-      image_url: customer.image_url ?? null,
+      total_pending: customer.total_pending ?? 0,
+      total_paid: customer.total_paid ?? 0,
     }));
   } catch (error) {
     console.error('Database Error (fetchFilteredCustomers):', error);
