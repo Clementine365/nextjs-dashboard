@@ -1,6 +1,5 @@
 import postgres from 'postgres';
-export type { CustomerField };
-
+import { formatCurrency } from './utils';
 import {
   CustomerField,
   CustomersTableType,
@@ -9,7 +8,6 @@ import {
   LatestInvoiceRaw,
   Revenue,
 } from './definitions';
-import { formatCurrency } from './utils';
 
 /* ---------------------- POSTGRES CONNECTION ---------------------- */
 const sql = postgres(process.env.POSTGRES_URL!, {
@@ -20,7 +18,6 @@ const sql = postgres(process.env.POSTGRES_URL!, {
 export async function fetchRevenue(): Promise<Revenue[]> {
   try {
     console.log('Fetching revenue data...');
-    // Remove delay in production
     const data = await sql<Revenue[]>`
       SELECT * FROM revenue
     `;
@@ -35,16 +32,25 @@ export async function fetchRevenue(): Promise<Revenue[]> {
 export async function fetchLatestInvoices(): Promise<InvoicesTable[]> {
   try {
     const data = await sql<LatestInvoiceRaw[]>`
-      SELECT invoices.amount, customers.name, customers.image_url, customers.email, invoices.id
+      SELECT
+        invoices.id,
+        invoices.customer_id,
+        invoices.amount,
+        invoices.date,
+        invoices.status,
+        customers.name,
+        customers.email,
+        customers.image_url
       FROM invoices
       JOIN customers ON invoices.customer_id = customers.id
       ORDER BY invoices.date DESC
       LIMIT 5
     `;
 
+    // Do not format amount here; keep it a number for InvoicesTable type
     return data.map((invoice) => ({
       ...invoice,
-      amount: formatCurrency(invoice.amount),
+      image_url: invoice.image_url ?? null,
     }));
   } catch (error) {
     console.error('Database Error (fetchLatestInvoices):', error);
@@ -81,13 +87,17 @@ export async function fetchCardData() {
 /* ---------------------- FILTERED INVOICES ---------------------- */
 const ITEMS_PER_PAGE = 6;
 
-export async function fetchFilteredInvoices(query: string, currentPage: number): Promise<InvoicesTable[]> {
+export async function fetchFilteredInvoices(
+  query: string,
+  currentPage: number
+): Promise<InvoicesTable[]> {
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
-    return await sql<InvoicesTable[]>`
+    const data = await sql<InvoicesTable[]>`
       SELECT
         invoices.id,
+        invoices.customer_id,
         invoices.amount,
         invoices.date,
         invoices.status,
@@ -105,6 +115,11 @@ export async function fetchFilteredInvoices(query: string, currentPage: number):
       ORDER BY invoices.date DESC
       LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
     `;
+
+    return data.map((invoice) => ({
+      ...invoice,
+      image_url: invoice.image_url ?? null,
+    }));
   } catch (error) {
     console.error('Database Error (fetchFilteredInvoices):', error);
     throw new Error('Failed to fetch invoices.');
