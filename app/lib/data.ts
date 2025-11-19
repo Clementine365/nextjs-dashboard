@@ -1,5 +1,4 @@
 import postgres from 'postgres';
-import { formatCurrency } from './utils';
 import {
   CustomerField,
   CustomersTableType,
@@ -17,7 +16,6 @@ const sql = postgres(process.env.POSTGRES_URL!, {
 /* ---------------------- REVENUE ---------------------- */
 export async function fetchRevenue(): Promise<Revenue[]> {
   try {
-    console.log('Fetching revenue data...');
     const data = await sql<Revenue[]>`
       SELECT * FROM revenue
     `;
@@ -47,7 +45,6 @@ export async function fetchLatestInvoices(): Promise<InvoicesTable[]> {
       LIMIT 5
     `;
 
-    // Do not format amount here; keep it a number for InvoicesTable type
     return data.map((invoice) => ({
       ...invoice,
       image_url: invoice.image_url ?? null,
@@ -75,8 +72,8 @@ export async function fetchCardData() {
     return {
       numberOfInvoices: Number(invoiceCount[0]?.count ?? 0),
       numberOfCustomers: Number(customerCount[0]?.count ?? 0),
-      totalPaidInvoices: formatCurrency(invoiceStatus[0]?.paid ?? 0),
-      totalPendingInvoices: formatCurrency(invoiceStatus[0]?.pending ?? 0),
+      totalPaidInvoices: invoiceStatus[0]?.paid ?? 0,
+      totalPendingInvoices: invoiceStatus[0]?.pending ?? 0,
     };
   } catch (error) {
     console.error('Database Error (fetchCardData):', error);
@@ -162,7 +159,7 @@ export async function fetchInvoiceById(id: string): Promise<InvoiceForm | null> 
 
     return {
       ...data[0],
-      amount: data[0].amount / 100, // Convert cents to dollars
+      amount: data[0].amount / 100,
     };
   } catch (error) {
     console.error('Database Error (fetchInvoiceById):', error);
@@ -206,8 +203,7 @@ export async function fetchFilteredCustomers(query: string): Promise<CustomersTa
 
     return data.map((customer) => ({
       ...customer,
-      total_pending: formatCurrency(customer.total_pending ?? 0),
-      total_paid: formatCurrency(customer.total_paid ?? 0),
+      image_url: customer.image_url ?? null,
     }));
   } catch (error) {
     console.error('Database Error (fetchFilteredCustomers):', error);
