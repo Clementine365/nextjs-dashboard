@@ -46,7 +46,13 @@ export async function fetchLatestInvoices(): Promise<InvoicesTable[]> {
     `;
 
     return data.map((invoice) => ({
-      ...invoice,
+      id: invoice.id,
+      customer_id: invoice.customer_id,
+      amount: invoice.amount,
+      date: invoice.date,
+      status: invoice.status,
+      name: invoice.name,
+      email: invoice.email,
       image_url: invoice.image_url ?? null,
     }));
   } catch (error) {
@@ -114,7 +120,13 @@ export async function fetchFilteredInvoices(
     `;
 
     return data.map((invoice) => ({
-      ...invoice,
+      id: invoice.id,
+      customer_id: invoice.customer_id,
+      amount: invoice.amount,
+      date: invoice.date,
+      status: invoice.status,
+      name: invoice.name,
+      email: invoice.email,
       image_url: invoice.image_url ?? null,
     }));
   } catch (error) {
